@@ -1,0 +1,83 @@
+--------------------------------------------
+Reactive repositories
+
+added mongoreactive driver
+and reactivetest
+dependancy
+
+Added UnitOfMeasureReactiveRepository to input Unit of Measure this will connect to the crud Database its just like advance version of UnitOfMeasureRepository
+
+log.error("#######");
+log.error("Count: " + reactiveRepository.count().block().toString());
+
+We added these line in RecipeBootstrap onApplicationEvent(), count() gives a mono, block says now run count, now convert that count to toString()
+
+-------------------------------------------
+
+Convert to Reactive Repository
+
+added CategoryReactiveRepository
+added RecipeReactiveRepository
+
+In recipe Bootstrap we added categoryReactiveRepository and recipeReactiveRepository and called the count function on both of them.
+
+commenting line 22 all of this as this was for explanatory purpose
+
+--------------------------------------------
+
+UnitOfMeasureServiceImpl Layer
+
+edited from set to flux in Unit of Measure Service
+edited the UnitOfMeasureImplementation to add reactive logic
+
+edited Ingridient Controller inside it edited newRecipe()  model.addAttribute("uomList", this logic into reactive we used collectList to encapsulate a Flux into a Mono also used block() to Subscribe to this Mono and block indefinitely until a next signal is received
+When we use Block then the request goes to Mongo DB .... after whole process occur the list(mono) is sent to view layer
+
+--------------------------------------------
+
+IngredientServiceImpl Layer
+
+edited IngredientService to add reactive logic
+edited IngredientController to make changes in methods implementing IngredientService for above edited reactive logic
+
+In IngredientServiceImpl in deleteById() method there's an issue in reactive logic of RecipeReactiveRepository it was found that DBRef is illegal in reactive driver for mongoDB so UnitOfMeasure was null in the mono returned from recipeReactiveRepository.
+The suggested alternative is to store ids and then loading the related data on application level.
+But as of now this issue is resolved in latest mongoDB reactive Driver. But still we can solve this issue assuming its an issue
+
+edited SavedIngredientCommand in IngredientServiceImpl to add reactive logic in IngredientServiceImpl.
+
+flatMapIterable() will convert mono to flux
+single() will convert flux to mono
+recipeReactiveRepository.findById(recipeId) will give a mono stream of Recipe
+Mono.just() will create a mono
+
+--------------------------------------------
+
+Changing DBRefs to IDs
+
+commented DBRef from domain
+
+editing IngredientServiceImpl to remove RecipeRepository and made in full reactive where it was used in the code
+The suggested alternative is to store ids and then loading the related data on application level.
+
+--------------------------------------------
+
+Refactor recipeServiceImpl
+
+edited IndexController made it reactive
+edited RecipeController made it reactive
+edited IngredientController made it reactive
+edited imageController made it reactive
+
+view layer is not using reactive types
+
+--------------------------------------------
+
+Skipping Refactor image service
+
+--------------------------------------------
+Conclusion
+
+Right now servelet container is blocking the request so we need to refactor it
+we also need to refactor view layer also
+--------------------------------------------
